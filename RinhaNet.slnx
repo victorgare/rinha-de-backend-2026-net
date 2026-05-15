@@ -1,4 +1,3 @@
 <Solution>
   <Project Path="src/RinhaNet.Api/RinhaNet.Api.csproj" />
-  <Project Path="src/RinhaNet/RinhaNet.csproj" />
 </Solution>
