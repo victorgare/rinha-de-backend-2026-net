@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Mvc;
+
 namespace RinhaNet.Api;
 
 public class Program
@@ -20,7 +22,7 @@ public class Program
         }
 
         app.MapGet("/ready", () => Results.Ok());
-        app.MapPost("/fraud-score", () => Results.Ok());
+        app.MapPost("/fraud-score", ([FromBody] FraudScoreRequest request) => Results.Ok(request));
         app.Run();
     }
 }
