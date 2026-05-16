@@ -1,0 +1,6 @@
+@RinhaNet.Api_HostAddress = http://localhost:5118
+
+POST {{RinhaNet.Api_HostAddress}}/fraud-score
+Accept: application/json
+
+###

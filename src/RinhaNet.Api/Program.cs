@@ -1,4 +1,3 @@
-
 namespace RinhaNet.Api;
 
 public class Program
@@ -20,10 +19,8 @@ public class Program
             app.MapOpenApi();
         }
 
-        app.UseHttpsRedirection();
-
-        app.MapGet("/test", () => "Hello world!");
-
+        app.MapGet("/ready", () => Results.Ok());
+        app.MapPost("/fraud-score", () => Results.Ok());
         app.Run();
     }
 }
