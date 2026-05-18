@@ -54,3 +54,7 @@ services:
         limits:
           cpus: "0.45"
           memory: "160MB"
+
+network:
+  default:
+    driver: bridge
