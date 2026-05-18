@@ -7,7 +7,7 @@ public class FraudScoreRequest
     public Customer Customer { get; set; }
     public Merchant Merchant { get; set; }
     public Terminal Terminal { get; set; }
-    public LastTransaction Last_transaction { get; set; }
+    public LastTransaction? Last_transaction { get; set; }
 }
 
 public class Transaction
