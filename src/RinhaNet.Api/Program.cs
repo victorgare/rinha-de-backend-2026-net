@@ -1,11 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using RinhaNet.Api.Resources;
+using RinhaNet.Api.VectorSearch.BruteForce;
 
 namespace RinhaNet.Api;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static async Task Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,12 @@ public class Program
 
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
+
+        // load json data - Loads everything into memory
+        //await VectorCollection.LoadVectors(VectorSearchType.BruteForce);
+
+        // process json data into binary files
+        //await VectorDatabaseBuilder.BuildAsync();
 
         var app = builder.Build();
 
@@ -25,15 +32,19 @@ public class Program
         app.MapGet("/ready", () => Results.Ok());
         app.MapPost("/fraud-score", ([FromBody] FraudScoreRequest request) =>
         {
+            const int topK = 5;
             var dimensions = GetDimensions(request);
+            var result = new VectorSearchEngine("Data").Search(dimensions, topK);
+
+            var score = (float)result.Count(c => c.Label == "fraud") / topK;
             return Results.Ok(new
             {
-                approved = false,
-                fraud_score = 1.0,
+                approved = score < 0.6,
+                fraud_score = score,
             });
         });
 
-        app.Run();
+        await app.RunAsync();
     }
 
     private static float[] GetDimensions(FraudScoreRequest request)
