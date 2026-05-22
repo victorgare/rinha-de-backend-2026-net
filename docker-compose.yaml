@@ -20,6 +20,8 @@ services:
         limits:
           cpus: "0.1"
           memory: "30MB"
+    networks:
+      - rinha-network
 
   api1:
     image: ghcr.io/victorgare/rinha-net-api:main-76db302
