@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using RinhaNet.Api.Resources;
-using RinhaNet.Api.VectorSearch.BruteForce;
+using RinhaNet.Api.Tools;
+using RinhaNet.Api.VectorSearch;
 
 namespace RinhaNet.Api;
 
@@ -44,6 +45,8 @@ public class Program
 
     private static float[] GetDimensions(FraudScoreRequest request)
     {
+        using var perf = new PerfStep("Dim");
+
         var amount = Clamp(request.Transaction.Amount / Normalization.Normalized[Normalization.MaxAmount]);
         var installments = Clamp(((float)request.Transaction.Installments) / Normalization.Normalized[Normalization.MaxInstallments]);
         var amountVsAvg = Clamp(request.Transaction.Amount / request.Customer.Avg_amount / Normalization.Normalized[Normalization.AmountVsAvgRatio]);
