@@ -45,29 +45,26 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./Dockerfile
+          file: "src/RinhaNet.Api/Dockerfile"
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.image_tag }}
-            ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.branch_name }}-latest
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.image_tag }}
+            ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.branch_name }}-latest
 
       - name: Create summary
         run: |
-          IMAGE_1="ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.image_tag }}"
-          IMAGE_2="ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.branch_name }}-latest"
+          IMAGE_1="${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.image_tag }}"
+          IMAGE_2="${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ steps.meta.outputs.branch_name }}-latest"
 
           {
             echo "# Docker Image Published"
-            echo ""
-            echo "## Branch"
-            echo "\`${{ github.ref_name }}\`"
             echo ""
             echo "## Images"
             echo ""
             echo "- \`$IMAGE_1\`"
             echo "- \`$IMAGE_2\`"
             echo ""
-            echo "## Pull command"
+            echo "## Pull"
             echo ""
             echo '```bash'
             echo "docker pull $IMAGE_1"
