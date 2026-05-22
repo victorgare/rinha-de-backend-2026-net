@@ -15,12 +15,6 @@ public class Program
         // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
         builder.Services.AddOpenApi();
 
-        // load json data - Loads everything into memory
-        //await VectorCollection.LoadVectors(VectorSearchType.BruteForce);
-
-        // process json data into binary files
-        //await VectorDatabaseBuilder.BuildAsync();
-
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.

@@ -1,3 +1,6 @@
 <Solution>
+  <Folder Name="/Tools/">
+    <Project Path="src/RinhaNet.Converter/RinhaNet.Converter.csproj" Id="88ec8449-0f5f-421b-81e9-73705c173b57" />
+  </Folder>
   <Project Path="src/RinhaNet.Api/RinhaNet.Api.csproj" />
 </Solution>

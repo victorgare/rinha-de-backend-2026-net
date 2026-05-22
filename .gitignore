@@ -428,6 +428,6 @@ FodyWeavers.xsd
 *.msm
 *.msp
 /src/RinhaNet.Api/Resources/references.json
-/src/RinhaNet.Api/Data/labels.dat
-/src/RinhaNet.Api/Data/labels.idx
-/src/RinhaNet.Api/Data/vectors.bin
+/src/RinhaNet.Api/Data/*.bin
+/src/RinhaNet.Api/Data/*.dat
+/src/RinhaNet.Api/Data/*.idx
