@@ -36,8 +36,7 @@ services:
           cpus: "0.45"
           memory: "160MB"
     networks:
-      app-network:
-        driver: bridge
+      - rinha-network
         
   api2:
     image: ghcr.io/victorgare/rinha-net-api:main-8b3e9d1  
@@ -54,8 +53,8 @@ services:
           cpus: "0.45"
           memory: "160MB"
     networks:
-      app-network:
-        driver: bridge
+      - rinha-network
 
 networks:
-  - rinha-network
+  rinha-network:
+    driver: bridge
