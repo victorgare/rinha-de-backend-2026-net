@@ -23,8 +23,11 @@
         private readonly FileStream _labelsDatStream = File.OpenRead(Path.Combine(dataDir, "labels.dat"));
         private readonly FileStream _labelsIdxStream = File.OpenRead(Path.Combine(dataDir, "labels.idx"));
 
-        private readonly byte[] _vectorBuffer = new byte[VectorSizeBytes];
         private readonly AlgoSelector _calculate = new(VectorSearchType.SquaredEuclideanDistance);
+
+        private const int RecordsPerBlock = 32768;
+        private const int BlockSizeBytes = RecordsPerBlock * VectorSizeBytes;
+        private readonly byte[] _blockBuffer = new byte[BlockSizeBytes];
 
         public async Task<List<SearchResult>> SearchAsync(float[] query, int topK = 5)
         {
@@ -36,25 +39,40 @@
             {
                 int totalRecords = (int)(_vectorsStream.Length / VectorSizeBytes);
                 _vectorsStream.Position = 0;
+                int globalId = 0;
 
-                for (int id = 0; id < totalRecords; id++)
+
+                while (globalId < totalRecords)
                 {
-                    int read = await _vectorsStream.ReadAsync(_vectorBuffer.AsMemory(0, VectorSizeBytes));
+                    int bytesRead = await _vectorsStream.ReadAsync(_blockBuffer);
 
-                    if (read != VectorSizeBytes)
+                    if (bytesRead <= 0)
                         break;
 
-                    var vector = MemoryMarshal.Cast<byte, float>(_vectorBuffer);
-                    float score = _calculate.Score(query, vector);
+                    int recordsRead = bytesRead / VectorSizeBytes;
 
-                    if (results.Count < topK)
+                    ReadOnlySpan<byte> blockBytes = _blockBuffer.AsSpan(0, recordsRead * VectorSizeBytes);
+                    ReadOnlySpan<float> blockFloats = MemoryMarshal.Cast<byte, float>(blockBytes);
+
+                    for (int localRecord = 0; localRecord < recordsRead; localRecord++)
                     {
-                        results.Enqueue((id, score), -score);
-                    }
-                    else if (score < results.Peek().Score)
-                    {
-                        results.Dequeue();
-                        results.Enqueue((id, score), -score);
+                        int floatOffset = localRecord * Dimensions;
+
+                        ReadOnlySpan<float> vector = blockFloats.Slice(floatOffset, Dimensions);
+
+                        float score = _calculate.Score(query, vector);
+
+                        if (results.Count < topK)
+                        {
+                            results.Enqueue((globalId, score), -score);
+                        }
+                        else if (score < results.Peek().Score)
+                        {
+                            results.Dequeue();
+                            results.Enqueue((globalId, score), -score);
+                        }
+
+                        globalId++;
                     }
                 }
             }
