@@ -1,6 +1,6 @@
 ﻿namespace RinhaNet.Api.VectorSearch.Algo
 {
-    public class EuclideanDistance : ICalculate
+    public class SquaredEuclideanDistance : ICalculate
     {
         public float Score(float[] query, ReadOnlySpan<float> reference)
         {
@@ -13,7 +13,7 @@
                 sum += (float)diffPow;
             }
 
-            return (float)Math.Sqrt(sum);
+            return sum;
         }
     }
 }
