@@ -22,7 +22,7 @@ services:
           memory: "30MB"
 
   api1:
-    image: ghcr.io/victorgare/rinha-net-api:main-8b3e9d1  
+    image: ghcr.io/victorgare/rinha-net-api:main-76db302
     hostname: api1
     healthcheck:
       test: curl -f http://localhost:8080/ready || exit 1
@@ -39,7 +39,7 @@ services:
       - rinha-network
         
   api2:
-    image: ghcr.io/victorgare/rinha-net-api:main-8b3e9d1  
+    image: gghcr.io/victorgare/rinha-net-api:main-76db302
     hostname: api2
     healthcheck:
       test: curl -f http://localhost:8080/ready || exit 1
