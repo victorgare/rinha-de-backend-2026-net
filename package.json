@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "commands to make it easier to run the project",
   "scripts": {
-    "test": "npm run docker:up && npm run k6:test",
+    "test": "npm run docker:up && npm run k6:test && npm run docker:down && npm run k6:test:stop",
     "test:smoke": "npm run docker:up && npm run k6:smoke && npm run docker:down && npm run k6:smoke:stop",
     "docker:up": "cd .\\docker\\ && docker compose up --build --force-recreate --no-deps -d",
     "docker:down": "cd .\\docker\\ && docker compose down",
