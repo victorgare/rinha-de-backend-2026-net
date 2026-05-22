@@ -1,0 +1,56 @@
+name: rinha-net
+services:
+  nginx:
+    image: nginx:1.31-alpine-slim
+    ports:
+      - "9999:9999"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      api1:
+        condition: service_healthy
+      api2:
+        condition: service_healthy
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+    deploy:
+      resources:
+        limits:
+          cpus: "0.1"
+          memory: "30MB"
+
+  api1:
+    build:
+      context: ".."
+      dockerfile: "src/RinhaNet.Api/Dockerfile"
+    hostname: api1
+    healthcheck:
+      test: curl -f http://{api1}:8080/ready || exit 1
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.45"
+          memory: "160MB"
+
+  api2:
+    build:
+      context: ".."
+      dockerfile: "src/RinhaNet.Api/Dockerfile"
+    hostname: api2
+    healthcheck:
+      test: curl -f http://{api2}:8080/ready || exit 1
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: "0.45"
+          memory: "160MB"
