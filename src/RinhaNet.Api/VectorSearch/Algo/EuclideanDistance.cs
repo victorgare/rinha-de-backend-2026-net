@@ -2,7 +2,7 @@
 {
     public class EuclideanDistance : ICalculate
     {
-        public float Score(float[] query, Span<float> reference)
+        public Task<float> Score(float[] query, Span<float> reference)
         {
             float sum = 0f;
             for (int i = 0; i < query.Length; i++)
@@ -13,7 +13,7 @@
                 sum += (float)diffPow;
             }
 
-            return (float)Math.Sqrt(sum);
+            return Task.FromResult((float)Math.Sqrt(sum));
         }
     }
 }

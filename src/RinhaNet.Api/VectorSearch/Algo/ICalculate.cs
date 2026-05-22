@@ -2,6 +2,6 @@
 {
     public interface ICalculate
     {
-        float Score(float[] query, Span<float> reference);
+        Task<float> Score(float[] query, Span<float> reference);
     }
 }

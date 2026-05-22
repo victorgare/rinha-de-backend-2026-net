@@ -1,6 +1,7 @@
 ﻿namespace RinhaNet.Api.VectorSearch.BruteForce
 {
     using RinhaNet.Api.VectorSearch.Algo;
+    using System.Buffers;
     using System.Text;
 
     public class SearchResult
@@ -31,41 +32,47 @@
             _calculate = new AlgoSelector(VectorSearchType.EuclideanDistance);
         }
 
-        public List<SearchResult> Search(float[] query, int topK = 5)
+        public async Task<List<SearchResult>> SearchAsync(float[] query, int topK = 5)
         {
             var results = new PriorityQueue<(int Id, float Score), float>();
 
-            int totalRecords = (int)(_vectorsStream.Length / VectorSizeBytes);
-
-            _vectorsStream.Position = 0;
-
-            Span<float> vector = stackalloc float[Dimensions];
-            for (int id = 0; id < totalRecords; id++)
+            float[] vectorBuffer = ArrayPool<float>.Shared.Rent(Dimensions);
+            try
             {
-                int read = _vectorsStream.Read(_vectorBuffer, 0, VectorSizeBytes);
+                int totalRecords = (int)(_vectorsStream.Length / VectorSizeBytes);
+                _vectorsStream.Position = 0;
 
-                if (read != VectorSizeBytes)
-                    break;
-
-
-                for (int i = 0; i < Dimensions; i++)
+                for (int id = 0; id < totalRecords; id++)
                 {
-                    vector[i] = BitConverter.ToSingle(_vectorBuffer, i * sizeof(float));
-                }
+                    int read = await _vectorsStream.ReadAsync(_vectorBuffer.AsMemory(0, VectorSizeBytes));
 
-                float score = _calculate.Score(query, vector);
+                    if (read != VectorSizeBytes)
+                        break;
 
-                if (results.Count < topK)
-                {
-                    results.Enqueue((id, score), -score);
-                }
-                else if (score < results.Peek().Score)
-                {
-                    results.Dequeue();
-                    results.Enqueue((id, score), -score);
+                    Span<float> vector = vectorBuffer.AsSpan(0, Dimensions);
+
+                    for (int i = 0; i < Dimensions; i++)
+                    {
+                        vector[i] = BitConverter.ToSingle(_vectorBuffer, i * sizeof(float));
+                    }
+
+                    float score = await _calculate.Score(query, vector);
+
+                    if (results.Count < topK)
+                    {
+                        results.Enqueue((id, score), -score);
+                    }
+                    else if (score < results.Peek().Score)
+                    {
+                        results.Dequeue();
+                        results.Enqueue((id, score), -score);
+                    }
                 }
             }
-
+            finally
+            {
+                ArrayPool<float>.Shared.Return(vectorBuffer);
+            }
             return [.. results
                 .UnorderedItems
                 .Select(x => new SearchResult

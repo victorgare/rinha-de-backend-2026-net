@@ -29,12 +29,13 @@ public class Program
             app.MapOpenApi();
         }
 
+        var searchEngine = new VectorSearchEngine("Data");
         app.MapGet("/ready", () => Results.Ok());
-        app.MapPost("/fraud-score", ([FromBody] FraudScoreRequest request) =>
+        app.MapPost("/fraud-score", async ([FromBody] FraudScoreRequest request) =>
         {
             const int topK = 5;
             var dimensions = GetDimensions(request);
-            var result = new VectorSearchEngine("Data").Search(dimensions, topK);
+            var result = await searchEngine.SearchAsync(dimensions, topK);
 
             var score = (float)result.Count(c => c.Label == "fraud") / topK;
             return Results.Ok(new
