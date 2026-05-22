@@ -12,9 +12,18 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+
 COPY ["src/RinhaNet.Api/RinhaNet.Api.csproj", "src/RinhaNet.Api/"]
+COPY ["src/RinhaNet.Converter/RinhaNet.Converter.csproj", "src/RinhaNet.Converter/"]
+
 RUN dotnet restore "./src/RinhaNet.Api/RinhaNet.Api.csproj"
+RUN dotnet restore "./src/RinhaNet.Converter/RinhaNet.Converter.csproj"
+
 COPY . .
+
+# generate necessary files for the build and publish stages
+RUN dotnet run --project "./src/RinhaNet.Converter/RinhaNet.Converter.csproj" -c $BUILD_CONFIGURATION
+
 WORKDIR "/src/src/RinhaNet.Api"
 RUN dotnet build "./RinhaNet.Api.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
