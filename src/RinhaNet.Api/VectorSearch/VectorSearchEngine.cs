@@ -25,7 +25,7 @@
 
         private readonly AlgoSelector _calculate = new(VectorSearchType.SquaredEuclideanDistance);
 
-        private const int RecordsPerBlock = 32768;
+        private const int RecordsPerBlock = 16384;
         private const int BlockSizeBytes = RecordsPerBlock * VectorSizeBytes;
         private readonly byte[] _blockBuffer = new byte[BlockSizeBytes];
 
@@ -40,7 +40,6 @@
                 int totalRecords = (int)(_vectorsStream.Length / VectorSizeBytes);
                 _vectorsStream.Position = 0;
                 int globalId = 0;
-
 
                 while (globalId < totalRecords)
                 {
