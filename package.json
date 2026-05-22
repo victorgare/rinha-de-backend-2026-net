@@ -11,7 +11,7 @@
     "k6:smoke": "cd .\\test\\ && docker compose --profile smoke up",
     "k6:test:stop": "cd .\\test\\ && docker compose --profile test down",
     "k6:smoke:stop": "cd .\\test\\ && docker compose --profile smoke down",
-    "generate:resources": "dotnet run --project src/RinhaNet.Converter"
+    "generate": "dotnet run --project src/RinhaNet.Converter"
   },
   "author": "Victor Carnielli",
   "license": "ISC"
