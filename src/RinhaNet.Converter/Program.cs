@@ -6,7 +6,8 @@ namespace RinhaNet.Converter
     {
         static async Task Main(string[] args)
         {
-            await VectorDatabaseBuilder.BuildAsync();
+            //await VectorDatabaseBuilder.BuildAsync();
+            await ClusterBuilder.BuildClusters();
         }
     }
 }

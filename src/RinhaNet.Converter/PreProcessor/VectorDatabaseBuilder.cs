@@ -1,18 +1,13 @@
 ﻿using RinhaNet.Api.VectorSearch;
-using RinhaNet.Converter.Util;
 using System.IO.Compression;
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
 
 namespace RinhaNet.Converter.PreProcessor
 {
-    public static class VectorDatabaseBuilder
+    public class VectorDatabaseBuilder : BaseBuilder
     {
-        private const int Dimensions = 14;
-        private static readonly string AssemblyPath = Path.GetDirectoryName(Assembly.GetExecutingAssembly()!.Location)!;
-        private static readonly string DataPath = Path.Combine(AssemblyPath, "Resources", "references.json.gz");
-        private static readonly string OutputDir = Path.Combine(PathFinder.FindSolutionPath(), "src", "RinhaNet.Api", "Data");
+
         public static async Task BuildAsync()
         {
             Directory.CreateDirectory(OutputDir);

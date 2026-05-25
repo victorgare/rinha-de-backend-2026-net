@@ -13,7 +13,6 @@
 
   <ItemGroup>
     <Folder Include="Resources\" />
-    <Folder Include="PreProcessor\NewFolder\" />
   </ItemGroup>
 
   <ItemGroup>
