@@ -431,3 +431,5 @@ FodyWeavers.xsd
 /src/RinhaNet.Api/Data/*.bin
 /src/RinhaNet.Api/Data/*.dat
 /src/RinhaNet.Api/Data/*.idx
+/src/RinhaNet.Api/Data/Clusters/*.bin
+test/results.json

@@ -1,5 +1,6 @@
 ﻿using RinhaNet.Api.VectorSearch;
 using RinhaNet.Api.VectorSearch.Algo;
+using Spectre.Console;
 using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
@@ -46,40 +47,56 @@ namespace RinhaNet.Converter.PreProcessor
                 centroids[i] = (float[])sample[index].Clone();
             }
 
-            for (int iteration = 0; iteration < iterations; iteration++)
-            {
-                var sums = new float[clusterCount][];
-                var counts = new int[clusterCount];
-
-                for (int c = 0; c < clusterCount; c++)
-                    sums[c] = new float[Dimensions];
-
-                foreach (var vector in sample)
-                {
-                    int cluster = FindNearestCentroid(vector, centroids);
-
-                    counts[cluster]++;
-
-                    for (int d = 0; d < Dimensions; d++)
-                        sums[cluster][d] += vector[d];
-                }
-
-                for (int c = 0; c < clusterCount; c++)
-                {
-                    if (counts[c] == 0)
+            AnsiConsole.Progress()
+                .Columns(
+                    new TaskDescriptionColumn(),
+                    new ProgressBarColumn
                     {
-                        // empty cluster: restart with random point
-                        int index = random.Next(sample.Length);
-                        centroids[c] = (float[])sample[index].Clone();
-                        continue;
+                        CompletedStyle = new Style(Color.Green),
+                        RemainingStyle = new Style(Color.Grey)
+                    },
+                    new PercentageColumn())
+                .Start(ctx =>
+            {
+
+                var task = ctx.AddTask("Training KMeans", maxValue: iterations);
+
+                for (int iteration = 0; iteration < iterations; iteration++)
+                {
+                    var sums = new float[clusterCount][];
+                    var counts = new int[clusterCount];
+
+                    for (int c = 0; c < clusterCount; c++)
+                        sums[c] = new float[Dimensions];
+
+                    foreach (var vector in sample)
+                    {
+                        int cluster = FindNearestCentroid(vector, centroids);
+
+                        counts[cluster]++;
+
+                        for (int d = 0; d < Dimensions; d++)
+                            sums[cluster][d] += vector[d];
                     }
 
-                    for (int d = 0; d < Dimensions; d++)
-                        centroids[c][d] = sums[c][d] / counts[c];
-                }
+                    for (int c = 0; c < clusterCount; c++)
+                    {
+                        if (counts[c] == 0)
+                        {
+                            // empty cluster: restart with random point
+                            int index = random.Next(sample.Length);
+                            centroids[c] = (float[])sample[index].Clone();
+                            continue;
+                        }
 
-                Console.WriteLine($"KMeans iteration {iteration + 1}/{iterations}");
-            }
+                        for (int d = 0; d < Dimensions; d++)
+                            centroids[c][d] = sums[c][d] / counts[c];
+                    }
+
+                    task.Description = $"Training KMeans {iteration + 1} of {iterations}";
+                    task.Increment(1);
+                }
+            });
 
             return centroids;
         }
@@ -176,43 +193,59 @@ namespace RinhaNet.Converter.PreProcessor
 
                 int id = 0;
 
-                await foreach (var item in ReadJsonGzAsync())
+                await AnsiConsole.Progress()
+                    .Columns(
+                        new TaskDescriptionColumn(),
+                        new ProgressBarColumn
+                        {
+                            CompletedStyle = new Style(Color.Green),
+                            RemainingStyle = new Style(Color.Grey)
+                        },
+                        new PercentageColumn())
+                    .StartAsync(async ctx =>
                 {
-                    if (item.Vector.Length != Dimensions)
-                        throw new InvalidOperationException($"Registro {id} inválido.");
+                    var task = ctx.AddTask("Processing", maxValue: 3000000);
 
-                    int clusterId = FindNearestCentroid(item.Vector, centroids);
-
-                    // record: [id:int32][14 floats]
-                    Span<byte> idBytes = stackalloc byte[sizeof(int)];
-                    BitConverter.TryWriteBytes(idBytes, id);
-                    clusterStreams[clusterId].Write(idBytes);
-
-                    foreach (float value in item.Vector)
+                    await foreach (var item in ReadJsonGzAsync())
                     {
-                        Span<byte> valueBytes = stackalloc byte[sizeof(float)];
-                        BitConverter.TryWriteBytes(valueBytes, value);
-                        clusterStreams[clusterId].Write(valueBytes);
+                        if (item.Vector.Length != Dimensions)
+                            throw new InvalidOperationException($"Registro {id} inválido.");
+
+                        int clusterId = FindNearestCentroid(item.Vector, centroids);
+
+                        // record: [id:int32][14 floats]
+                        Span<byte> idBytes = stackalloc byte[sizeof(int)];
+                        BitConverter.TryWriteBytes(idBytes, id);
+                        clusterStreams[clusterId].Write(idBytes);
+
+                        foreach (float value in item.Vector)
+                        {
+                            Span<byte> valueBytes = stackalloc byte[sizeof(float)];
+                            BitConverter.TryWriteBytes(valueBytes, value);
+                            clusterStreams[clusterId].Write(valueBytes);
+                        }
+
+                        // labels
+                        long labelOffset = labelsDat.Position;
+                        byte[] labelBytes = Encoding.UTF8.GetBytes(item.Label);
+
+                        await labelsDat.WriteAsync(labelBytes);
+
+                        Span<byte> offsetBytes = stackalloc byte[sizeof(long)];
+                        Span<byte> lengthBytes = stackalloc byte[sizeof(int)];
+
+                        BitConverter.TryWriteBytes(offsetBytes, labelOffset);
+                        BitConverter.TryWriteBytes(lengthBytes, labelBytes.Length);
+
+                        labelsIdx.Write(offsetBytes);
+                        labelsIdx.Write(lengthBytes);
+
+                        id++;
+
+                        task.Description = $"Processing {id + 1} of {task.MaxValue}";
+                        task.Increment(1);
                     }
-
-                    // labels
-                    long labelOffset = labelsDat.Position;
-                    byte[] labelBytes = Encoding.UTF8.GetBytes(item.Label);
-
-                    await labelsDat.WriteAsync(labelBytes);
-
-                    Span<byte> offsetBytes = stackalloc byte[sizeof(long)];
-                    Span<byte> lengthBytes = stackalloc byte[sizeof(int)];
-
-                    BitConverter.TryWriteBytes(offsetBytes, labelOffset);
-                    BitConverter.TryWriteBytes(lengthBytes, labelBytes.Length);
-
-                    labelsIdx.Write(offsetBytes);
-                    labelsIdx.Write(lengthBytes);
-
-                    id++;
-                }
-
+                });
                 Console.WriteLine($"Total records: {id}");
             }
             finally
