@@ -2,6 +2,6 @@
 {
     public interface ICalculate
     {
-        float Score(float[] query, ReadOnlySpan<float> reference);
+        float Score(ReadOnlySpan<float> query, ReadOnlySpan<float> reference);
     }
 }

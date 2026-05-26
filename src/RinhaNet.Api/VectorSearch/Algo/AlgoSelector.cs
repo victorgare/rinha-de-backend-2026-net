@@ -11,7 +11,7 @@ namespace RinhaNet.Api.VectorSearch.Algo
             _ => throw new NotSupportedException($"Tipo de busca vetorial '{type}' não suportado."),
         };
 
-        public float Score(float[] query, ReadOnlySpan<float> reference)
+        public float Score(ReadOnlySpan<float> query, ReadOnlySpan<float> reference)
         {
             using var perf = new PerfStep("Score");
             return _calculate.Score(query, reference);

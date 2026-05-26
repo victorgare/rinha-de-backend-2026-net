@@ -23,7 +23,4 @@
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-	<ItemGroup>
-		<None Include="Data\**\*.*" CopyToOutputDirectory="PreserveNewest" />
-	</ItemGroup>
 </Project>

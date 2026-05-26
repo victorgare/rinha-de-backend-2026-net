@@ -1,19 +1,12 @@
-﻿namespace RinhaNet.Api.VectorSearch
+﻿using RinhaNet.Api.Tools;
+using RinhaNet.Api.VectorSearch.Algo;
+using System.Buffers;
+using System.Runtime.InteropServices;
+using System.Text;
+
+namespace RinhaNet.Api.VectorSearch.Strategy
 {
-    using RinhaNet.Api.Tools;
-    using RinhaNet.Api.VectorSearch.Algo;
-    using System.Buffers;
-    using System.Runtime.InteropServices;
-    using System.Text;
-
-    public class SearchResult
-    {
-        public int Id { get; set; }
-        public float Score { get; set; }
-        public string Label { get; set; }
-    }
-
-    public sealed class VectorSearchEngine(string dataDir) : IDisposable
+    public sealed class BruteForceEngine(string dataDir) : IVectorSearchEngine
     {
         private const int Dimensions = 14;
         private const int VectorSizeBytes = Dimensions * sizeof(float);

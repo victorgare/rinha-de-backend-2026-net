@@ -2,7 +2,7 @@
 {
     public class SquaredEuclideanDistance : ICalculate
     {
-        public float Score(float[] query, ReadOnlySpan<float> reference)
+        public float Score(ReadOnlySpan<float> query, ReadOnlySpan<float> reference)
         {
             float sum = 0f;
             for (int i = 0; i < query.Length; i++)

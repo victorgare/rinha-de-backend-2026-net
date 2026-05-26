@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using RinhaNet.Api.Resources;
 using RinhaNet.Api.Tools;
 using RinhaNet.Api.VectorSearch;
+using RinhaNet.Api.VectorSearch.Strategy;
 
 namespace RinhaNet.Api;
 
@@ -24,7 +25,7 @@ public class Program
             app.MapOpenApi();
         }
 
-        var searchEngine = new VectorSearchEngine("Data");
+        var searchEngine = new StrategySelector(VectorSearchStrategy.Cluster);
         app.MapGet("/ready", () => Results.Ok());
         app.MapPost("/fraud-score", async ([FromBody] FraudScoreRequest request) =>
         {
