@@ -19,10 +19,6 @@ namespace RinhaNet.Api.VectorSearch.Strategy
 
         private readonly AlgoSelector _calculate = new(VectorSearchType.SquaredEuclideanDistance);
 
-        private const int RecordsPerBlock = 16384;
-        private const int BlockSizeBytes = RecordsPerBlock * VectorSizeBytes;
-        private readonly byte[] _blockBuffer = new byte[BlockSizeBytes];
-
         private readonly string _dataDir;
         private readonly FileStream _labelsDatStream;
         private readonly FileStream _labelsIdxStream;
@@ -39,7 +35,7 @@ namespace RinhaNet.Api.VectorSearch.Strategy
 
         public async Task<List<SearchResult>> SearchAsync(float[] query, int topK = 5)
         {
-            var clusters = await FindClusters(query, topK);
+            var clusters = await FindClusters(query, 3);
             var results = new PriorityQueue<(int Id, float Score), float>();
 
             float[] vectorBuffer = ArrayPool<float>.Shared.Rent(Dimensions);
@@ -80,14 +76,15 @@ namespace RinhaNet.Api.VectorSearch.Strategy
                 ArrayPool<float>.Shared.Return(vectorBuffer);
             }
 
-            return [.. results
+            return [ ..results
                 .UnorderedItems
-                .Select(x => new SearchResult
+                .Select( x => new SearchResult
                 {
                     Id = x.Element.Id,
                     Score = x.Element.Score,
                     Label = ReadLabel(x.Element.Id)
                 })];
+
         }
 
         private async Task<(int Id, float Score)[]> FindClusters(float[] query, int topK)
@@ -117,6 +114,10 @@ namespace RinhaNet.Api.VectorSearch.Strategy
         {
             long indexOffset = id * LabelIndexSizeBytes;
 
+            if (indexOffset < 0 || indexOffset + LabelIndexSizeBytes > _labelsIdxStream.Length)
+                throw new InvalidOperationException(
+                    $"Invalid label id {id}. indexOffset={indexOffset}, labelsIdxLength={_labelsIdxStream.Length}");
+
             Span<byte> offsetBytes = stackalloc byte[sizeof(long)];
             Span<byte> lengthBytes = stackalloc byte[sizeof(int)];
 
@@ -126,6 +127,10 @@ namespace RinhaNet.Api.VectorSearch.Strategy
 
             long labelOffset = BitConverter.ToInt64(offsetBytes);
             int length = BitConverter.ToInt32(lengthBytes);
+
+            if (labelOffset < 0 || length < 0 || labelOffset + length > _labelsDatStream.Length)
+                throw new InvalidOperationException(
+                    $"Invalid label pointer for id {id}. labelOffset={labelOffset}, length={length}, labelsDatLength={_labelsDatStream.Length}");
 
             byte[] labelBytes = new byte[length];
 

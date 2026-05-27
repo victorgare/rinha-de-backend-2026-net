@@ -5,7 +5,7 @@
   "scripts": {
     "test": "npm run docker:up && npm run k6:test && npm run docker:down && npm run k6:test:stop",
     "test:smoke": "npm run docker:up && npm run k6:smoke && npm run docker:down && npm run k6:smoke:stop",
-    "docker:up": "cd .\\docker\\ && docker compose up --build --force-recreate --no-deps -d",
+    "docker:up": "cd .\\docker\\ && docker compose up --build --no-deps -d",
     "docker:down": "cd .\\docker\\ && docker compose down",
     "k6:test": "cd .\\test\\ && docker compose --profile test up",
     "k6:smoke": "cd .\\test\\ && docker compose --profile smoke up",
