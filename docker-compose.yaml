@@ -24,7 +24,7 @@ services:
       - rinha-network
 
   api1:
-    image: ghcr.io/victorgare/rinha-net-api:main-76db302
+    image: ghcr.io/victorgare/rinha-net-api:main-72e56e5
     hostname: api1
     healthcheck:
       test: curl -f http://localhost:8080/ready || exit 1
@@ -41,7 +41,7 @@ services:
       - rinha-network
         
   api2:
-    image: ghcr.io/victorgare/rinha-net-api:main-76db302
+    image: ghcr.io/victorgare/rinha-net-api:main-72e56e5
     hostname: api2
     healthcheck:
       test: curl -f http://localhost:8080/ready || exit 1
